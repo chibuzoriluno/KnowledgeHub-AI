@@ -1,5 +1,6 @@
 from pathlib import Path
 from app.models.document import DocumentMetadata
+from app.services.text_service import normalize_text
 
 '''
 Create data/raw/
@@ -26,6 +27,7 @@ def save_document(filename: str, contents: bytes) -> DocumentMetadata:
     file_path = raw_dir / Path(filename).name
 
     text = contents.decode("utf-8")
+    text = normalize_text(text)
 
     with open(file_path, "wb") as buffer:
         buffer.write(contents)
