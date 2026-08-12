@@ -1,6 +1,7 @@
 from pathlib import Path
 from app.models.document import DocumentMetadata
 from app.services.text_service import normalize_text
+from app.services.chunk_service import build_chunks
 
 '''
 Create data/raw/
@@ -28,6 +29,17 @@ def save_document(filename: str, contents: bytes) -> DocumentMetadata:
 
     text = contents.decode("utf-8")
     text = normalize_text(text)
+    document_id = file_path.stem
+
+    chunks = build_chunks(
+    text,
+    document_id=document_id,
+    )
+
+    print(f"Generated {len(chunks)} chunks")
+
+    for chunk in chunks:
+        print(chunk.chunk_id)
 
     with open(file_path, "wb") as buffer:
         buffer.write(contents)
