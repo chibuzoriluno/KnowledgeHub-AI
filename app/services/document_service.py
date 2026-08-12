@@ -36,11 +36,6 @@ def save_document(filename: str, contents: bytes) -> DocumentMetadata:
     document_id=document_id,
     )
 
-    print(f"Generated {len(chunks)} chunks")
-
-    for chunk in chunks:
-        print(chunk.chunk_id)
-
     with open(file_path, "wb") as buffer:
         buffer.write(contents)
 
@@ -51,4 +46,4 @@ def save_document(filename: str, contents: bytes) -> DocumentMetadata:
         character_count=len(text),
         word_count=len(text.split()),
         status="uploaded",
-    )
+    ), chunks

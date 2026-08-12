@@ -51,4 +51,9 @@ async def upload_document(file: UploadFile = File(...)):
             detail="The uploaded file is empty.",
         )
 
-    return save_document(file.filename, contents)
+    metadata, chunks = save_document(file.filename, contents)
+
+    return {
+        **metadata.model_dump(),
+        "chunk_count": len(chunks),
+        }
