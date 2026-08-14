@@ -15,3 +15,4 @@ class DocumentChunk(BaseModel):
     document_id: str
     chunk_index: int
     text: str
+    embedding: list[float] | None = None
