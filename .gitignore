@@ -41,3 +41,6 @@ data/vector_db/
 # Coverage
 .coverage
 htmlcov/
+
+# Runtime data
+data/

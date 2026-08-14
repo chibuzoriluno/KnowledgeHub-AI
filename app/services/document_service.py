@@ -2,6 +2,8 @@ from pathlib import Path
 from app.models.document import DocumentMetadata
 from app.services.text_service import normalize_text
 from app.services.chunk_service import build_chunks
+from app.services.embedding_service import EmbeddingService
+from app.services.vector_service import VectorService
 
 '''
 Create data/raw/
@@ -18,10 +20,11 @@ Return metadata
 '''
 
 
+embedding_service = EmbeddingService()
+vector_service = VectorService()
 
 
-
-def save_document(filename: str, contents: bytes) -> DocumentMetadata:
+def save_document(filename: str, contents: bytes) -> tuple[DocumentMetadata, list]:
     raw_dir = Path("data/raw")
     raw_dir.mkdir(parents=True, exist_ok=True)
 
@@ -35,6 +38,9 @@ def save_document(filename: str, contents: bytes) -> DocumentMetadata:
     text,
     document_id=document_id,
     )
+
+    embedded_chunks = embedding_service.embed_chunks(chunks)
+    vector_service.add_chunks(embedded_chunks)
 
     with open(file_path, "wb") as buffer:
         buffer.write(contents)

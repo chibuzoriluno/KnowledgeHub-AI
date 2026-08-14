@@ -1,6 +1,8 @@
 from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from app.services.document_service import save_document
+from app.models.search import SearchRequest, SearchResponse
+from app.services.retrieval_service import RetrievalService
 
 router = APIRouter()
 
@@ -57,3 +59,16 @@ async def upload_document(file: UploadFile = File(...)):
         **metadata.model_dump(),
         "chunk_count": len(chunks),
         }
+
+
+
+retrieval_service = RetrievalService()
+
+@router.post("/search", response_model=SearchResponse)
+def search_documents(request: SearchRequest):
+    results = retrieval_service.search(
+        request.query,
+        top_k=request.top_k,
+    )
+
+    return results
