@@ -69,6 +69,7 @@ def search_documents(request: SearchRequest):
     results = retrieval_service.search(
         request.query,
         top_k=request.top_k,
-    )
+        max_distance=request.max_distance,
+        )
 
     return results

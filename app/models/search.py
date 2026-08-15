@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 class SearchRequest(BaseModel):
     query: str = Field(min_length=1)
     top_k: int = Field(default=3, ge=1, le=10)
+    max_distance: float | None = Field(default=None, gt=0)
 
 
 class SearchResult(BaseModel):
@@ -16,4 +17,5 @@ class SearchResult(BaseModel):
 
 class SearchResponse(BaseModel):
     query: str
+    result_count: int
     results: list[SearchResult]

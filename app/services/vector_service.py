@@ -25,7 +25,42 @@ class VectorService:
             ],
         )
 
-    def search(self, query_embedding: list[float],top_k: int = 3,):
-        return self.collection.query(
-        query_embeddings=[query_embedding],
-        n_results=top_k,)
+    def search(
+        self,
+        query_embedding: list[float],
+        top_k: int = 3,
+        max_distance: float | None = None,
+    ):
+        results = self.collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k,
+        )
+
+        if max_distance is not None:
+            filtered_indices = [
+                index for index,
+                distance in enumerate(results["distances"][0])
+                if distance <= max_distance
+            ]
+
+            results["ids"][0] = [
+                results["ids"][0][index]
+                for index in filtered_indices
+            ]
+
+            results["documents"][0] = [
+                results["documents"][0][index]
+                for index in filtered_indices
+            ]
+
+            results["metadatas"][0] = [
+                results["metadatas"][0][index]
+                for index in filtered_indices
+            ]
+
+            results["distances"][0] = [
+                results["distances"][0][index]
+                for index in filtered_indices
+            ]
+
+        return results
