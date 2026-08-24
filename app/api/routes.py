@@ -1,8 +1,14 @@
 from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from app.services.document_service import save_document
-from app.models.search import SearchRequest, SearchResponse
+from app.models.search import (
+    SearchRequest,
+    SearchResponse,
+    RAGRequest,
+    RAGResponse,
+)
 from app.services.retrieval_service import RetrievalService
+from app.services.rag_service import RAGService
 
 router = APIRouter()
 
@@ -63,6 +69,7 @@ async def upload_document(file: UploadFile = File(...)):
 
 
 retrieval_service = RetrievalService()
+rag_service = RAGService()
 
 @router.post("/search", response_model=SearchResponse)
 def search_documents(request: SearchRequest):
@@ -73,3 +80,17 @@ def search_documents(request: SearchRequest):
         )
 
     return results
+
+
+@router.post("/rag", response_model=RAGResponse)
+async def rag(request: RAGRequest):
+    answer = await rag_service.answer(
+        query=request.query,
+        top_k=request.top_k,
+        max_distance=request.max_distance,
+    )
+
+    return RAGResponse(
+        query=request.query,
+        answer=answer,
+    )

@@ -19,3 +19,14 @@ class SearchResponse(BaseModel):
     query: str
     result_count: int
     results: list[SearchResult]
+
+
+class RAGRequest(BaseModel):
+    query: str = Field(min_length=1)
+    top_k: int = Field(default=3, ge=1, le=10)
+    max_distance: float | None = Field(default=None, gt=0)
+
+
+class RAGResponse(BaseModel):
+    query: str
+    answer: str
