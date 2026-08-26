@@ -84,13 +84,8 @@ def search_documents(request: SearchRequest):
 
 @router.post("/rag", response_model=RAGResponse)
 async def rag(request: RAGRequest):
-    answer = await rag_service.answer(
+    return await rag_service.answer(
         query=request.query,
         top_k=request.top_k,
         max_distance=request.max_distance,
-    )
-
-    return RAGResponse(
-        query=request.query,
-        answer=answer,
     )

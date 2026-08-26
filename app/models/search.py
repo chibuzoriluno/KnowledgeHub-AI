@@ -27,6 +27,14 @@ class RAGRequest(BaseModel):
     max_distance: float | None = Field(default=None, gt=0)
 
 
+class RAGSource(BaseModel):
+    chunk_id: str
+    document_id: str
+    chunk_index: int
+    distance: float
+
+
 class RAGResponse(BaseModel):
     query: str
     answer: str
+    sources: list[RAGSource]

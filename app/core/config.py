@@ -8,6 +8,7 @@ class Settings:
     DESCRIPTION: str = (
         "Production-ready Retrieval-Augmented Generation (RAG) API"
     )
+    RAG_DEFAULT_MAX_DISTANCE: float = 1.3
 
 
 settings = Settings()
