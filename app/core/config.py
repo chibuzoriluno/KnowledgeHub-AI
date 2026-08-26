@@ -8,6 +8,15 @@ class Settings:
     DESCRIPTION: str = (
         "Production-ready Retrieval-Augmented Generation (RAG) API"
     )
+
+    EMBEDDING_MODEL: str = (
+        "sentence-transformers/all-MiniLM-L6-v2"
+    )
+
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "gemma2:2b"
+    OLLAMA_TIMEOUT: float = 60.0
+
     RAG_DEFAULT_MAX_DISTANCE: float = 1.3
 
 

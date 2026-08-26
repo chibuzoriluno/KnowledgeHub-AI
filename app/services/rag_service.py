@@ -5,9 +5,22 @@ from app.services.generation_service import GenerationService
 
 
 class RAGService:
-    def __init__(self):
-        self.retrieval_service = RetrievalService()
-        self.generation_service = GenerationService()
+    def __init__(
+        self,
+        retrieval_service: RetrievalService | None = None,
+        generation_service: GenerationService | None = None,
+    ):
+        self.retrieval_service = (
+            retrieval_service
+            if retrieval_service is not None
+            else RetrievalService()
+        )
+
+        self.generation_service = (
+            generation_service
+            if generation_service is not None
+            else GenerationService()
+        )
 
     async def answer(
         self,

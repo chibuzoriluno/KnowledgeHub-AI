@@ -1,6 +1,9 @@
+import logging
+import time
 from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from app.services.document_service import save_document
+from app.services.generation_service import GenerationServiceError
 from app.models.search import (
     SearchRequest,
     SearchResponse,
@@ -11,6 +14,7 @@ from app.services.retrieval_service import RetrievalService
 from app.services.rag_service import RAGService
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/")
@@ -59,7 +63,26 @@ async def upload_document(file: UploadFile = File(...)):
             detail="The uploaded file is empty.",
         )
 
-    metadata, chunks = save_document(file.filename, contents)
+    logger.info(
+        "Document upload accepted: filename=%s size_bytes=%d",
+        file.filename,
+        len(contents),
+    )
+
+    try:
+        metadata, chunks = save_document(
+            file.filename,
+            contents,
+        )
+    except UnicodeDecodeError:
+        logger.warning(
+            "Document upload rejected: invalid UTF-8 filename=%s",
+            file.filename,
+        )
+        raise HTTPException(
+            status_code=400,
+            detail="The uploaded file must be valid UTF-8 text.",
+        )
 
     return {
         **metadata.model_dump(),
@@ -79,13 +102,51 @@ def search_documents(request: SearchRequest):
         max_distance=request.max_distance,
         )
 
+    logger.info(
+        "Semantic search completed: top_k=%d result_count=%d",
+        request.top_k,
+        results.result_count,
+        )
+
     return results
 
 
 @router.post("/rag", response_model=RAGResponse)
 async def rag(request: RAGRequest):
-    return await rag_service.answer(
-        query=request.query,
-        top_k=request.top_k,
-        max_distance=request.max_distance,
+    start_time = time.perf_counter()
+
+    logger.info(
+        "RAG request started: top_k=%d",
+        request.top_k,
     )
+
+    try:
+        result = await rag_service.answer(
+            query=request.query,
+            top_k=request.top_k,
+            max_distance=request.max_distance,
+        )
+
+        duration_ms = (time.perf_counter() - start_time) * 1000
+
+        logger.info(
+            "RAG request completed: source_count=%d duration_ms=%.2f",
+            len(result.sources),
+            duration_ms,
+        )
+
+        return result
+
+    except GenerationServiceError as exc:
+        duration_ms = (time.perf_counter() - start_time) * 1000
+
+        logger.error(
+            "RAG generation failed: duration_ms=%.2f error=%s",
+            duration_ms,
+            exc,
+        )
+
+        raise HTTPException(
+            status_code=503,
+            detail=str(exc),
+        ) from exc
