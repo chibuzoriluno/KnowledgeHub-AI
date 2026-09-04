@@ -1,6 +1,19 @@
+import re
+
 from app.models.document import DocumentChunk
 
 
+def split_sentences(text: str) -> list[str]:
+    sentences = re.split(
+        r"(?<=[.!?])\s+",
+        text.strip(),
+    )
+
+    return [
+        sentence.strip()
+        for sentence in sentences
+        if sentence.strip()
+    ]
 
 
 def chunk_text(
@@ -17,22 +30,65 @@ def chunk_text(
     if chunk_overlap >= chunk_size:
         raise ValueError("chunk_overlap must be smaller than chunk_size")
 
+    sentences = split_sentences(text)
+
+    if not sentences:
+        return []
+
     chunks = []
+    current_sentences = []
 
-    start = 0
-    text_length = len(text)
+    for sentence in sentences:
+        candidate_sentences = current_sentences + [sentence]
+        candidate = " ".join(candidate_sentences)
 
-    while start < text_length:
-        end = start + chunk_size
-        chunk = text[start:end].strip()
+        if not current_sentences:
+            current_sentences = [sentence]
+            continue
 
-        if chunk:
-            chunks.append(chunk)
+        if len(candidate) <= chunk_size:
+            current_sentences.append(sentence)
+            continue
 
-        start += chunk_size - chunk_overlap
+        chunks.append(" ".join(current_sentences))
+
+        overlap_sentences = []
+        overlap_length = 0
+
+        for previous_sentence in reversed(current_sentences):
+            additional_length = len(previous_sentence)
+
+            if overlap_sentences:
+                additional_length += 1
+
+            if overlap_length + additional_length > chunk_overlap:
+                break
+
+            candidate_with_overlap = (
+                overlap_sentences
+                + [sentence]
+            )
+
+            candidate_length = len(
+                " ".join(candidate_with_overlap)
+            )
+
+            if candidate_length > chunk_size:
+                break
+
+            overlap_sentences.insert(
+                0,
+                previous_sentence,
+            )
+
+            overlap_length += additional_length
+
+        current_sentences = overlap_sentences + [sentence]
+
+    if current_sentences:
+        chunks.append(" ".join(current_sentences))
 
     return chunks
-
 
 
 def build_chunks(

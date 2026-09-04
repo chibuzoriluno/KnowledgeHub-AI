@@ -27,6 +27,7 @@ class RAGService:
         query: str,
         top_k: int = 3,
         max_distance: float | None = None,
+        document_id: str | None = None,
     ) -> RAGResponse:
 
         if max_distance is None:
@@ -36,6 +37,7 @@ class RAGService:
             query=query,
             top_k=top_k,
             max_distance=max_distance,
+            document_id=document_id,
         )
 
         if not search_response.results:

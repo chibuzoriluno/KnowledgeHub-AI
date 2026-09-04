@@ -1,0 +1,437 @@
+### Company & Project Background
+
+**Company:** Apex Software Consulting
+
+**Client:** HealthPulse Technologies
+
+**Project:** MedRAG (AI-Powered Medical Retrieval-Augmented Generation Platform)
+
+---
+
+# Machine Learning Foundations & System Architecture Manual
+
+**Document ID:** ml_overview.txt
+
+**Author:** Apex Software Consulting Engineering Team
+
+**Target System:** MedRAG (Medical Retrieval-Augmented Generation & Clinical Decision Support)
+
+**Classification:** Internal Technical Reference / Client Onboarding Asset
+
+---
+
+## 1. Executive Summary & Strategic Business Context
+
+### 1.1 Project Overview
+
+At Apex Software Consulting, our engagement with HealthPulse Technologies centers on designing, deploying, and maintaining **MedRAG**, a production-grade enterprise Retrieval-Augmented Generation (RAG) platform tailored for clinical and medical environments. Modern healthcare operations generate massive volumes of unstructured and structured data across electronic health records (EHRs), peer-reviewed research papers, clinical guidelines, diagnostic imaging reports, operational financial spreadsheets, and internal slide decks.
+
+Traditional information retrieval systems fail to synthesize context across these disparate formats, leading to latency in decision-making and increased cognitive load for clinicians and administrators. MedRAG bridges this gap by combining state-of-the-art Large Language Models (LLMs) with dense vector search, sparse keyword indexing, and metadata-aware provenance tracking.
+
+### 1.2 Enterprise Constraints & Objective
+
+Machine Learning (ML) serves as the engine for MedRAG. However, in medical AI applications, model performance cannot be measured solely by standard offline ML metrics like accuracy or loss. Systems must satisfy rigid operational constraints:
+
+* **Zero Halitosis/Hallucination Tolerance:** Every output generated for a clinician must be directly verifiable against source documents with rich provenance metadata.
+* **Multi-Format Ingestion Strategy:** Knowledge bases are rarely pure text. MedRAG ingests plain text (`.txt`), Markdown (`.md`), unstructured PDFs (`.pdf`), Office documents (`.docx`, `.pptx`), spreadsheets (`.xlsx`, `.csv`), web documentation (`.html`), visual diagrams, and scanned paper records (`scanned_policy.pdf`).
+* **Strict Evaluation Frameworks:** As engineered in **Phase 8 (Step 8.9)** of the MedRAG roadmap, system performance must undergo continuous evaluation against a controlled corpus (to verify citation accuracy, provenance tracking, and metadata preservation) and a stress corpus (to measure latency, index scaling, and retrieval degradation).
+
+This manual documents the Machine Learning core powering MedRAG, detailing the mathematical foundations, ingestion mechanics, embedding spaces, hybrid retrieval architectures, generation guardrails, and evaluation metrics required by Apex Software Consulting engineers and HealthPulse Technologies stakeholders.
+
+---
+
+## 2. Fundamentals of Machine Learning in Enterprise Search
+
+Machine Learning enables computers to learn patterns from data rather than relying on hand-coded procedural rules. Within MedRAG, ML algorithms operate across three core tiers: feature extraction, representation learning, and language generation.
+
+```
+       [ Unstructured Data Ingestion ]
+                      │
+                      ▼
+        [ Chunking & Feature Extraction ]
+                      │
+                      ▼
+   [ Vector Space Embedding (Dense Vectors) ]
+                      │
+                      ▼
+   [ Hybrid Search (Dense + Sparse Reciprocal Rank) ]
+                      │
+                      ▼
+    [ Cross-Encoder Reranking Engine ]
+                      │
+                      ▼
+   [ LLM Generation with Provenance Metadata ]
+
+```
+
+### 2.1 Supervised, Unsupervised, and Self-Supervised Learning in MedRAG
+
+1. **Supervised Learning:** Used primarily in specialized classifiers (e.g., content-type classification during ingestion to determine if a chunk is text, a financial table, or a diagram caption) and cross-encoder reranking models trained on explicit user query-relevance labels.
+2. **Unsupervised Learning:** Applied during vector index clustering (such as Inverted File Index / IVF partitioning in vector databases) to organize millions of chunk embeddings into efficient search neighborhoods.
+3. **Self-Supervised Learning:** The backbone of our pretrained Transformer models (BERT, RoBERTa, BioLinkBERT, and LLMs like Llama and Mistral). These models learn deep linguistic, semantic, and medical domain representations by predicting masked tokens or next tokens across billions of medical literature parameters.
+
+### 2.2 Mathematical Foundations of Vector Embeddings
+
+To process medical context, raw textual tokens $x$ are transformed into dense continuous vector representations $\vec{v} \in \mathbb{R}^d$, where $d$ represents the dimensionality of the embedding space (typically $d = 768$ or $d = 1536$).
+
+Given two text chunks, $A$ and $B$, represented by embedding vectors $\vec{u}$ and $\vec{v}$, their semantic similarity is computed via Cosine Similarity:
+
+$$\text{Similarity}(\vec{u}, \vec{v}) = \frac{\vec{u} \cdot \vec{v}}{\Vert{}\vec{u}\Vert{} \Vert{}\vec{v}\Vert{}} = \frac{\sum_{i=1}^{d} u_i v_i}{\sqrt{\sum_{i=1}^{d} u_i^2} \sqrt{\sum_{i=1}^{d} v_i^2}}$$
+
+When vectors are normalized to unit length ($\Vert{}\vec{u}\Vert{} = \Vert{}\vec{v}\Vert{} = 1$), cosine similarity simplifies directly to the inner dot product $\vec{u} \cdot \vec{v}$, enabling ultra-fast vector similarity operations on GPU acceleration hardware.
+
+---
+
+## 3. Multi-Format Data Ingestion & Rich Metadata Provenance
+
+A core requirement established for HealthPulse Technologies is that MedRAG must trace every retrieved fact back to its exact location in the client's source system.
+
+### 3.1 Provenance Architecture
+
+Rather than embedding provenance metadata directly into the primary `chunk_id` string (which risks fragility during system refactoring), MedRAG decouples the chunk identifier from its metadata attributes.
+
+```
+Chunk Object
+├── chunk_id: "chk_9f8a71b2"
+├── text: "The platform processed 2.4 million requests in Q1..."
+├── embedding: [0.0124, -0.0891, 0.4120, ...]
+└── metadata
+    ├── document_id: "ai_report"
+    ├── filename: "ai_report.pdf"
+    ├── file_type: "pdf"
+    ├── content_type: "text"
+    ├── page_number: 2
+    ├── section: "Executive Metrics"
+    ├── paragraph_number: 3
+    ├── table_number: null
+    ├── figure_number: null
+    ├── sheet_name: null
+    ├── sheet_number: null
+    ├── slide_number: null
+    └── chunk_index: 14
+
+```
+
+### 3.2 Format-Specific Ingestion & Provenance Mapping
+
+To ensure uniform search quality across HealthPulse Technologies' file types, Apex Software Consulting implements format-specific parsing pipelines:
+
+* **Text (`.txt`) and Markdown (`.md`):** Extracted sequentially; sections are parsed via header structures (`#`, `##`) to preserve hierarchical context in the `section` metadata field.
+* **PDF Documents (`.pdf`):** Processed via structural parsers to maintain layout geometry, extracting `page_number`, `table_number`, and `figure_number`. Scanned PDFs undergo Optical Character Recognition (OCR) pipeline processing, tagging chunks with `content_type: "ocr_text"`.
+* **Word Documents (`.docx`):** Parsed into structural XML elements, tracking paragraph indices, headers, embedded tables, and inline image captions.
+* **Presentations (`.pptx`):** Extracted slide by slide, preserving `slide_number` and associating visual diagrams with their corresponding structural slide content.
+* **Spreadsheets (`.xlsx`, `.csv`):** Extracted at the worksheet level, preserving `sheet_name`, `sheet_number`, and cell row/column coordinates transformed into markdown-formatted markdown tables for vector representation.
+
+---
+
+## 4. Deep Learning Architecture: Embeddings, Dense Retrieval, and Sparse Search
+
+MedRAG uses a hybrid approach combining dense semantics with sparse lexical precision.
+
+```
+                  ┌────────────────────────┐
+                  │   User Clinical Query  │
+                  └───────────┬────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+    ┌───────────────────┐           ┌───────────────────┐
+    │ Dense Retriever   │           │ Sparse Retriever  │
+    │ (Bi-Encoder Vector│           │ (BM25 / Keyword)  │
+    │  Similarity)      │           │                   │
+    └─────────┬─────────┘           └─────────┬─────────┘
+              │                               │
+              │ Top-K Results                 │ Top-K Results
+              └───────────────┬───────────────┘
+                              ▼
+               ┌─────────────────────────────┐
+               │ Reciprocal Rank Fusion (RRF)│
+               └──────────────┬──────────────┘
+                              ▼
+               ┌─────────────────────────────┐
+               │ Cross-Encoder Reranker      │
+               └──────────────┬──────────────┘
+                              ▼
+               ┌─────────────────────────────┐
+               │ Context Window Assembly     │
+               └─────────────────────────────┘
+
+```
+
+### 4.1 Dense Retrieval via Bi-Encoders
+
+Dense retrieval relies on bi-encoder architectures (e.g., `text-embedding-3-large` or fine-tuned `BioBERT` embeddings). Bi-encoders independently map the user's query $q$ and target text chunks $c$ into a shared embedding space:
+
+$$E_Q = f_\theta(q), \quad E_C = f_\theta(c)$$
+
+Because $E_C$ can be pre-computed offline and indexed into vector databases (e.g., Qdrant, Milvus, FAISS), query-time search requires only calculating $E_Q$ and performing a nearest-neighbor lookup.
+
+### 4.2 Sparse Retrieval via Lexical Indexing (BM25)
+
+While dense embeddings capture semantic meaning (e.g., understanding that "myocardial infarction" is related to "heart attack"), they can struggle with exact keyword matching for specific medical codes, drug identification numbers, or distinct client metrics (e.g., "NGN 4.2 million").
+
+To complement dense search, MedRAG integrates the BM25 lexical ranking algorithm:
+
+$$\text{Score}_{\text{BM25}}(D, Q) = \sum_{i=1}^{n} \text{IDF}(q_i) \cdot \frac{f(q_i, D) \cdot (k_1 + 1)}{f(q_i, D) + k_1 \cdot \left(1 - b + b \cdot \frac{\vert{}D\vert{}}{\text{avgdl}}\right)}$$
+
+Where:
+
+* $f(q_i, D)$ is the term frequency of query token $q_i$ in document $D$.
+* $\vert{}D\vert{}$ and $\text{avgdl}$ represent document length and average document length across the corpus.
+* $k_1$ and $b$ are tuning parameters (typically $k_1 \in [1.2, 2.0]$ and $b = 0.75$).
+
+### 4.3 Reciprocal Rank Fusion (RRF)
+
+To combine the ranked list from dense vector retrieval ($R_{\text{dense}}$) with the ranked list from sparse BM25 retrieval ($R_{\text{sparse}}$) without requiring score normalization, MedRAG uses Reciprocal Rank Fusion:
+
+$$\text{RRF\_Score}(d \in D) = \sum_{m \in M} \frac{1}{k + r_m(d)}$$
+
+Where $M$ is the set of retrieval systems (dense and sparse), $r_m(d)$ is the rank position of document $d$ in system $m$, and $k$ is a smoothing constant (typically $k=60$).
+
+---
+
+## 5. Reranking and Fine-Tuning Mechanics
+
+While bi-encoders are fast, they process query and document independently, missing rich cross-token interactions. MedRAG addresses this in a two-stage retrieval pipeline by using a Cross-Encoder as a second-stage reranker.
+
+### 5.1 Cross-Encoder Mechanics
+
+The top $K$ candidate chunks returned by RRF (e.g., $K=50$) are fed into a Cross-Encoder reranker model.
+
+```
+[CLS] Query Text [SEP] Chunk Text Document [SEP] ──► Transformer Layers ──► Sigmoid ──► Relevance Score [0, 1]
+
+```
+
+Because the attention mechanism processes every token of the query alongside every token of the document simultaneously, the Cross-Encoder yields significantly higher precision, ensuring only the most relevant context is passed to the LLM context window.
+
+### 5.2 Model Fine-Tuning Strategy for Client Data
+
+For HealthPulse Technologies, standard off-the-shelf models may miss domain-specific terminology. Apex Software Consulting employs **Multiple Negatives Ranking Loss (MNRL)** to fine-tune bi-encoders on client domain pairs $(q_i, p_i^+)$, where $q_i$ is a clinical question and $p_i^+$ is the true positive context chunk:
+
+$$\mathcal{L}_{\text{MNRL}} = -\sum_{i=1}^{B} \log \frac{e^{\text{sim}(q_i, p_i^+) / \tau}}{\sum_{j=1}^{B} e^{\text{sim}(q_i, p_j^+) / \tau}}$$
+
+This contrastive loss treats all other positive chunks $p_j^+$ ($j \neq i$) within the mini-batch of size $B$ as in-batch negative examples, making fine-tuning highly data-efficient.
+
+---
+
+## 6. Evaluation Framework & Testing Corpora (Phase 8 Implementation)
+
+As defined in the project architecture, MedRAG's evaluation strategy is divided into two distinct testing layers to validate system functionality and scalability.
+
+```
+                           ┌───────────────────────────────┐
+                           │   MedRAG Evaluation Suite     │
+                           └───────────────┬───────────────┘
+                                           │
+                   ┌───────────────────────┴───────────────────────┐
+                   ▼                                               ▼
+     ┌───────────────────────────┐                   ┌───────────────────────────┐
+     │  Layer 1: Controlled      │                   │  Layer 2: Stress          │
+     │  Corpus (11 Documents)    │                   │  Corpus (Large Scale)     │
+     └─────────────┬─────────────┘                   └─────────────┬─────────────┘
+                   │                                               │
+    • Exact Ground Truth Validation                 • Large-Index Scaling Performance
+    • 100% Auditable Provenance                     • Retrieval Latency Degradation
+    • Citation & Metadata Precision                 • Duplication & Metadata Filtering
+
+```
+
+### 6.1 Layer 1: Controlled Corpus
+
+The Controlled Corpus consists of **11 deliberate, highly structured assets** across diverse formats, designed to verify citation accuracy and metadata attribution:
+
+```
+app/evaluation/corpus_manifest.json
+
+```
+
+| Document ID | Filename | Format | Category | Content Types |
+| --- | --- | --- | --- | --- |
+| `ml_overview` | `ml_overview.txt` | `txt` | `text` | Text |
+| `networking` | `networking.md` | `md` | `text` | Text |
+| `ai_report` | `ai_report.pdf` | `pdf` | `documents` | Text, Table, Figure |
+| `software_architecture` | `software_architecture.docx` | `docx` | `documents` | Text, Table |
+| `research_notes` | `research_notes.pdf` | `pdf` | `documents` | Text |
+| `ai_platform` | `ai_platform.pptx` | `pptx` | `presentations` | Text, Figure |
+| `financial_data` | `financial_data.xlsx` | `xlsx` | `spreadsheets` | Table |
+| `model_metrics` | `model_metrics.csv` | `csv` | `spreadsheets` | Table |
+| `api_guide` | `api_guide.html` | `html` | `web` | Text |
+| `scanned_policy` | `scanned_policy.pdf` | `pdf` | `scanned` | Image, OCR Text |
+| `architecture_diagram` | `architecture_diagram.pdf` | `pdf` | `visual` | Figure, Image |
+
+#### Ground-Truth Testing Methodology
+
+Because the facts within these 11 assets are deterministic, evaluation questions target explicit provenance locations:
+
+* *Query:* "What was the monthly revenue in the financial report?"
+*Expected Source:* `{"document_id": "ai_report", "page_number": 4, "table_number": 1}`
+* *Query:* "Which slide describes system latency?"
+*Expected Source:* `{"document_id": "ai_platform", "slide_number": 7}`
+* *Query:* "Which sheet contains operating expenses?"
+*Expected Source:* `{"document_id": "financial_data", "sheet_name": "Expenses", "sheet_number": 2}`
+
+### 6.2 Layer 2: Stress Corpus
+
+The Stress Corpus expands evaluation to thousands of synthetic and real-world medical documents. Its primary objectives are:
+
+1. **Retrieval Degradation Analysis:** Measuring how Precision@K and Mean Reciprocal Rank (MRR) drop as index size scales from $10^3$ to $10^6$ chunks.
+2. **System Latency Benchmarking:** Measuring p50, p95, and p99 query latencies across vector similarity search, BM25 indexing, and cross-encoder reranking steps.
+3. **Robustness Under Noise:** Assessing retrieval performance when duplicate or semi-duplicate documents are introduced.
+
+### 6.3 Quantitative Evaluation Metrics
+
+MedRAG uses four primary metrics to benchmark retrieval quality:
+
+#### Precision@K
+
+Measures the proportion of retrieved chunks in the top $K$ results that are relevant to the query:
+
+$$\text{Precision@K} = \frac{\vert{}\{\text{Relevant Chunks}\} \cap \{\text{Top } K \text{ Retrieved Chunks}\}\vert{}}{K}$$
+
+#### Recall@K
+
+Measures the proportion of all relevant chunks in the corpus that are successfully captured in the top $K$ results:
+
+$$\text{Recall@K} = \frac{\vert{}\{\text{Relevant Chunks}\} \cap \{\text{Top } K \text{ Retrieved Chunks}\}\vert{}}{\vert{}\{\text{Total Relevant Chunks in Corpus}\}\vert{}}$$
+
+#### Mean Reciprocal Rank (MRR)
+
+Evaluates where the *first* relevant chunk appears in the ranked list across a set of $Q$ queries:
+
+$$\text{MRR} = \frac{1}{\vert{}Q\vert{}} \sum_{i=1}^{\vert{}Q\vert{}} \frac{1}{\text{rank}_i}$$
+
+Where $\text{rank}_i$ is the position of the first correct chunk for query $i$.
+
+#### Normalized Discounted Cumulative Gain (NDCG@K)
+
+Measures ranking quality, penalizing relevant chunks that appear lower down in the retrieved list:
+
+$$\text{DCG@K} = \sum_{i=1}^{K} \frac{2^{\text{rel}_i} - 1}{\log_2(i + 1)}$$
+
+$$\text{NDCG@K} = \frac{\text{DCG@K}}{\text{IDCG@K}}$$
+
+Where $\text{rel}_i$ is the relevance score of the document at rank $i$, and $\text{IDCG@K}$ is the Ideal DCG score (the DCG achieved by sorting candidates perfectly by relevance).
+
+---
+
+## 7. Strategic Engineering Roadmap (Phases 8–12)
+
+Apex Software Consulting maintains a phased implementation roadmap to evolve MedRAG from prototype validation into a resilient enterprise platform for HealthPulse Technologies.
+
+```
+[ Phase 8: Evaluation & Retrieval Architecture ]
+                      │
+                      ▼
+[ Phase 9: Multi-Format Production Ingestion ]
+                      │
+                      ▼
+[ Phase 10: Tables, OCR, Images & Diagram Parsing ]
+                      │
+                      ▼
+[ Phase 11: Security, Authorization & Multi-Tenancy ]
+                      │
+                      ▼
+[ Phase 12: Scale, Cloud Deployment & Observability ]
+
+```
+
+### Phase 8 — Evaluation & Retrieval Architecture *(Current Stage)*
+
+* Finalize provenance schema and corpus manifest formats.
+* Validate corpus schema against sample configurations using `corpus_manifest.json`.
+* Populate Layer 1 Controlled Corpus (11 core test files) and baseline RRF retrieval algorithms.
+
+### Phase 9 — Multi-Format Production Ingestion
+
+* Build production-grade parsing pipelines for `.docx`, `.pptx`, `.xlsx`, `.html`, and `.pdf` files.
+* Decouple parsing code from evaluation assets, ensuring that raw documents flow through standardized document transformers.
+* Implement robust, metadata-preserving chunking strategies (e.g., semantic-boundary chunking, markdown header preservation).
+
+### Phase 10 — Specialized Visual & Tabular Ingestion
+
+* Integrate Layout-Aware OCR engines (e.g., PaddleOCR, Tesseract, or vision-LLMs) to ingest `scanned_policy.pdf`.
+* Deploy specialized table extraction parsers that convert complex spreadsheet layouts and embedded PDF tables into semantic structural markdown representations.
+* Process visual diagrams, charts, and figures (`architecture_diagram.pdf`) using vision-language models to generate rich descriptive text representations for semantic indexing.
+
+### Phase 11 — Enterprise Security, Authorization & Multi-Tenancy
+
+* Implement Role-Based Access Control (RBAC) and Attribute-Based Access Control (ABAC) at the vector search layer.
+* Enforce tenant isolation so search queries dynamically filter context based on active user security tokens:
+
+```json
+{
+  "filter": {
+    "and": [
+      { "key": "tenant_id", "match": { "value": "healthpulse_main" } },
+      { "key": "clearance_level", "lte": 3 }
+    ]
+  }
+}
+
+```
+
+* Ensure full compliance with HIPAA and GDPR data privacy standards for clinical data handling.
+
+### Phase 12 — Cloud Deployment, Scaling & Observability
+
+* Deploy vector search nodes across distributed clusters with replication and auto-scaling capabilities.
+* Implement real-time monitoring and observability pipelines (e.g., OpenTelemetry, Prometheus, Grafana) tracking vector search latency, LLM token usage, and retrieval drift.
+* Establish continuous evaluation pipelines where real-world clinical queries are sampled, anonymized, and evaluated against baseline metrics.
+
+---
+
+## 8. Developer Manual & Quick-Start Execution Guide
+
+This section provides operational steps for Apex Software Consulting engineers and HealthPulse Technologies technical staff working within the project repository.
+
+### 8.1 Repository Navigation
+
+```
+KnowledgeHub-AI/
+├── app/
+│   ├── evaluation/
+│   │   ├── corpus_manifest.json
+│   │   └── retrieval_eval.json
+│   ├── ingestion/
+│   ├── retrieval/
+│   └── models/
+├── data/
+│   └── corpus/
+│       ├── text/
+│       │   ├── ml_overview.txt
+│       │   └── networking.md
+│       ├── documents/
+│       ├── presentations/
+│       ├── spreadsheets/
+│       ├── web/
+│       ├── scanned/
+│       └── visual/
+└── requirements.txt
+
+```
+
+### 8.2 Environment Validation Commands
+
+To confirm that the execution environment and corpus manifest are configured properly, run the following command from the project root:
+
+```bash
+python -c "import json; data=json.load(open('app/evaluation/corpus_manifest.json', encoding='utf-8')); print(f'Corpus entries: {len(data[\"documents\"])}'); print(sorted(d['format'] for d in data['documents']))"
+
+```
+
+#### Expected System Output:
+
+```text
+Corpus entries: 11
+['csv', 'docx', 'html', 'md', 'pdf', 'pdf', 'pdf', 'pdf', 'pptx', 'txt', 'xlsx']
+
+```
+
+---
+
+## 9. Conclusion
+
+Machine Learning in the MedRAG platform is designed around precision, auditability, and clear source provenance. By moving away from basic vector search to a hybrid architecture featuring BM25, Bi-Encoders, Reciprocal Rank Fusion, and Cross-Encoder reranking, Apex Software Consulting provides HealthPulse Technologies with a system built for clinical decision support.
+
+Through the strict execution of our Phase 8 evaluation methodology, followed by the upcoming Phase 9 through 12 rollouts, MedRAG delivers verified answers grounded directly in enterprise documentation.

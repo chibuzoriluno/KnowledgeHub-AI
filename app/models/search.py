@@ -5,6 +5,7 @@ class SearchRequest(BaseModel):
     query: str = Field(min_length=1)
     top_k: int = Field(default=3, ge=1, le=10)
     max_distance: float | None = Field(default=None, gt=0)
+    document_id: str | None = Field(default=None, min_length=1)
 
 
 class SearchResult(BaseModel):
@@ -25,6 +26,7 @@ class RAGRequest(BaseModel):
     query: str = Field(min_length=1)
     top_k: int = Field(default=3, ge=1, le=10)
     max_distance: float | None = Field(default=None, gt=0)
+    document_id: str | None = Field(default=None, min_length=1)
 
 
 class RAGSource(BaseModel):

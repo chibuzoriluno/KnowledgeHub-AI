@@ -9,9 +9,11 @@ class RetrievalService:
         self.vector_service = VectorService()
 
     def search(
-            self,query: str,
+            self,
+            query: str,
             top_k: int = 3,
             max_distance: float | None = None,
+            document_id: str | None = None,
     ) -> SearchResponse:
         query_embedding = self.embedding_service.embed_text(query)
 
@@ -19,6 +21,7 @@ class RetrievalService:
             query_embedding,
             top_k=top_k,
             max_distance=max_distance,
+            document_id=document_id,
         )
 
         search_results = []

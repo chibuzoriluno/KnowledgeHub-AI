@@ -1,0 +1,5 @@
+Model ID,Architecture,Precision@5,Recall@5,MRR,Latency p95 (ms),Memory Usage (GB)
+bm25_lexical,Sparse BM25,0.742,0.685,0.791,8.2,1.2
+dense_biencoder_v1,Bi-Encoder (1536d),0.825,0.810,0.864,18.4,4.8
+hybrid_rrf_k60,BM25 + Bi-Encoder (RRF),0.898,0.872,0.923,24.1,6.0
+hybrid_cross_encoder,Hybrid + Cross-Encoder,0.945,0.912,0.958,85.0,8.5

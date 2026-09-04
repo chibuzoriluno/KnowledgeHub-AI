@@ -1,0 +1,176 @@
+{
+  "version": "1.0",
+  "documents": [
+    {
+      "document_id": "ml_overview",
+      "filename": "ml_overview.txt",
+      "format": "txt",
+      "category": "text",
+      "content_types": ["text"],
+      "structure": {
+        "characters": 22531,
+        "lines": 437
+      }
+    },
+    {
+      "document_id": "networking",
+      "filename": "networking.md",
+      "format": "md",
+      "category": "text",
+      "content_types": ["text"],
+      "structure": {
+        "characters": 9757,
+        "lines": 193
+      }
+    },
+    {
+      "document_id": "ai_report",
+      "filename": "ai_report.pdf",
+      "format": "pdf",
+      "category": "documents",
+      "content_types": ["text", "table", "figure"],
+      "structure": {
+        "pages": 10,
+        "page_text_characters": [
+          706,
+          1286,
+          894,
+          1959,
+          1065,
+          875,
+          616,
+          853,
+          524,
+          890
+        ],
+        "embedded_images_detected": 0
+      }
+    },
+    {
+      "document_id": "software_architecture",
+      "filename": "software_architecture.docx",
+      "format": "docx",
+      "category": "documents",
+      "content_types": ["text", "table"],
+      "structure": {
+        "paragraphs": 204,
+        "tables": 1,
+        "table_details": [
+          {
+            "table_number": 1,
+            "rows": 6,
+            "columns": 4
+          }
+        ]
+      }
+    },
+    {
+      "document_id": "research_notes",
+      "filename": "research_notes.pdf",
+      "format": "pdf",
+      "category": "documents",
+      "content_types": ["text"],
+      "structure": {
+        "pages": 6,
+        "page_text_characters": [
+          686,
+          1623,
+          305,
+          1008,
+          570,
+          1134
+        ],
+        "embedded_images_detected": 0
+      }
+    },
+    {
+      "document_id": "ai_platform",
+      "filename": "ai_platform.pptx",
+      "format": "pptx",
+      "category": "presentations",
+      "content_types": ["text", "figure"],
+      "structure": {
+        "slides": 10,
+        "pictures_detected": 10
+      }
+    },
+    {
+      "document_id": "financial_data",
+      "filename": "financial_data.xlsx",
+      "format": "xlsx",
+      "category": "spreadsheets",
+      "content_types": ["table"],
+      "structure": {
+        "sheets": [
+          {
+            "sheet_number": 1,
+            "sheet_name": "revenue",
+            "rows": 5,
+            "columns": 5,
+            "non_empty_cells": 25
+          },
+          {
+            "sheet_number": 2,
+            "sheet_name": "expenses",
+            "rows": 8,
+            "columns": 5,
+            "non_empty_cells": 40
+          },
+          {
+            "sheet_number": 3,
+            "sheet_name": "Q1_summary",
+            "rows": 6,
+            "columns": 3,
+            "non_empty_cells": 18
+          }
+        ]
+      }
+    },
+    {
+      "document_id": "model_metrics",
+      "filename": "model_metrics.csv",
+      "format": "csv",
+      "category": "spreadsheets",
+      "content_types": ["table"],
+      "structure": {
+        "lines": 5,
+        "columns": 7
+      }
+    },
+    {
+      "document_id": "api_guide",
+      "filename": "api_guide.html",
+      "format": "html",
+      "category": "web",
+      "content_types": ["text"],
+      "structure": {
+        "characters": 2009,
+        "lines": 41
+      }
+    },
+    {
+      "document_id": "scanned_policy",
+      "filename": "scanned_policy.pdf",
+      "format": "pdf",
+      "category": "scanned",
+      "content_types": ["image", "ocr_text"],
+      "structure": {
+        "pages": 1,
+        "page_text_characters": [630],
+        "embedded_images_detected": 0
+      }
+    },
+    {
+      "document_id": "architecture_diagram",
+      "filename": "architecture_diagram.pdf",
+      "format": "pdf",
+      "category": "visual",
+      "content_types": ["figure", "image"],
+      "structure": {
+        "pages": 1,
+        "page_text_characters": [729],
+        "embedded_images_detected": 0
+      }
+    }
+  ]
+}

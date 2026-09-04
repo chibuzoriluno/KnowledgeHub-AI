@@ -30,11 +30,19 @@ class VectorService:
         query_embedding: list[float],
         top_k: int = 3,
         max_distance: float | None = None,
-    ):
-        results = self.collection.query(
-            query_embeddings=[query_embedding],
-            n_results=top_k,
-        )
+        document_id: str | None = None,
+        ):
+        query_kwargs = {
+            "query_embeddings": [query_embedding],
+            "n_results": top_k,
+        }
+
+        if document_id is not None:
+            query_kwargs["where"] = {
+                "document_id": document_id,
+            }
+
+        results = self.collection.query(**query_kwargs)
 
         if max_distance is not None:
             filtered_indices = [

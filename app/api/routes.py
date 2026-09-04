@@ -100,7 +100,8 @@ def search_documents(request: SearchRequest):
         request.query,
         top_k=request.top_k,
         max_distance=request.max_distance,
-        )
+        document_id=request.document_id,
+    )
 
     logger.info(
         "Semantic search completed: top_k=%d result_count=%d",
@@ -125,6 +126,7 @@ async def rag(request: RAGRequest):
             query=request.query,
             top_k=request.top_k,
             max_distance=request.max_distance,
+            document_id=request.document_id,
         )
 
         duration_ms = (time.perf_counter() - start_time) * 1000

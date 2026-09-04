@@ -1,0 +1,82 @@
+{
+  "version": "1.0",
+  "documents": [
+    {
+      "document_id": "ml_overview",
+      "filename": "ml_overview.txt",
+      "format": "txt",
+      "category": "text",
+      "content_types": ["text"]
+    },
+    {
+      "document_id": "networking",
+      "filename": "networking.md",
+      "format": "md",
+      "category": "text",
+      "content_types": ["text"]
+    },
+    {
+      "document_id": "ai_report",
+      "filename": "ai_report.pdf",
+      "format": "pdf",
+      "category": "documents",
+      "content_types": ["text", "table", "figure"]
+    },
+    {
+      "document_id": "software_architecture",
+      "filename": "software_architecture.docx",
+      "format": "docx",
+      "category": "documents",
+      "content_types": ["text", "table"]
+    },
+    {
+      "document_id": "research_notes",
+      "filename": "research_notes.pdf",
+      "format": "pdf",
+      "category": "documents",
+      "content_types": ["text"]
+    },
+    {
+      "document_id": "ai_platform",
+      "filename": "ai_platform.pptx",
+      "format": "pptx",
+      "category": "presentations",
+      "content_types": ["text", "figure"]
+    },
+    {
+      "document_id": "financial_data",
+      "filename": "financial_data.xlsx",
+      "format": "xlsx",
+      "category": "spreadsheets",
+      "content_types": ["table"]
+    },
+    {
+      "document_id": "model_metrics",
+      "filename": "model_metrics.csv",
+      "format": "csv",
+      "category": "spreadsheets",
+      "content_types": ["table"]
+    },
+    {
+      "document_id": "api_guide",
+      "filename": "api_guide.html",
+      "format": "html",
+      "category": "web",
+      "content_types": ["text"]
+    },
+    {
+      "document_id": "scanned_policy",
+      "filename": "scanned_policy.pdf",
+      "format": "pdf",
+      "category": "scanned",
+      "content_types": ["image", "ocr_text"]
+    },
+    {
+      "document_id": "architecture_diagram",
+      "filename": "architecture_diagram.pdf",
+      "format": "pdf",
+      "category": "visual",
+      "content_types": ["figure", "image"]
+    }
+  ]
+}

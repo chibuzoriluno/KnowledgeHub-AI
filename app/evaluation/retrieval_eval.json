@@ -1,0 +1,75 @@
+{
+  "version": "2.0",
+  "evaluation_cases": [
+    {
+      "id": "q01",
+      "query": "What is machine learning?",
+      "expected_document_ids": ["test_doc"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q02",
+      "query": "What is supervised learning?",
+      "expected_document_ids": ["test_doc"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q03",
+      "query": "What is reinforcement learning?",
+      "expected_document_ids": ["test_doc"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q04",
+      "query": "What mathematical foundations are used in machine learning?",
+      "expected_document_ids": ["test_doc"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q05",
+      "query": "What is MLOps?",
+      "expected_document_ids": ["test_doc"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q06",
+      "query": "What is FastAPI?",
+      "expected_document_ids": ["test_phase5"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q07",
+      "query": "What is ChromaDB used for?",
+      "expected_document_ids": ["test_phase5"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q08",
+      "query": "What is semantic search?",
+      "expected_document_ids": ["test_phase5"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q09",
+      "query": "How does FastAPI interact with ChromaDB?",
+      "expected_document_ids": ["test_phase5"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q10",
+      "query": "What is quantum entanglement?",
+      "expected_document_ids": [],
+      "expected_content_types": [],
+      "expected_metadata": {}
+    }
+  ]
+}

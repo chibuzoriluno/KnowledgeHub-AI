@@ -10,16 +10,19 @@ class FakeRetrievalService:
         self.last_query = None
         self.last_top_k = None
         self.last_max_distance = None
+        self.last_document_id = None
 
     def search(
         self,
         query: str,
         top_k: int,
         max_distance: float | None,
+        document_id: str | None = None,
     ) -> SearchResponse:
         self.last_query = query
         self.last_top_k = top_k
         self.last_max_distance = max_distance
+        self.last_document_id = document_id
 
         return SearchResponse(
             query=query,

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KnowledgeHub-AI Platform API Reference</title>
+</head>
+<body>
+    <header>
+        <h1>KnowledgeHub-AI API Documentation</h1>
+        <p>Version 2.4 - Enterprise Retrieval & Ingestion Service</p>
+    </header>
+
+    <section id="overview">
+        <h2>1. Overview</h2>
+        <p>The KnowledgeHub-AI API provides programmatic access to document ingestion, hybrid vector retrieval, and provenance tracking across enterprise knowledge stores.</p>
+    </section>
+
+    <section id="authentication">
+        <h2>2. Authentication</h2>
+        <p>All API endpoints require authentication via an API Key. Include your key in the HTTP request header as follows:</p>
+        <pre><code>Authorization: Bearer kh_live_99824_prod_key</code></pre>
+        <p>Unauthenticated requests will return a <code>401 Unauthorized</code> response. API keys must be kept secure and never exposed in client-side applications.</p>
+    </section>
+
+    <section id="rate-limits">
+        <h2>3. Rate Limits & Quotas</h2>
+        <p>Standard enterprise tier accounts are limited to <strong>1,200 requests per minute</strong> per organization ID. Burst capacity allows up to 50 concurrent ingestion calls before returning <code>429 Too Many Requests</code>.</p>
+    </section>
+
+    <section id="ingestion-endpoint">
+        <h2>4. Document Ingestion</h2>
+        <p>Submit multi-format documents (PDF, DOCX, XLSX, PPTX, HTML) to the ingestion pipeline using the <code>POST /v1/ingest</code> endpoint.</p>
+        <p>Supported payload formats include multipart form-data for file uploads and JSON payloads for structured metadata registration.</p>
+    </section>
+
+    <section id="query-endpoint">
+        <h2>5. Retrieval & Provenance Query</h2>
+        <p>To retrieve chunks with metadata attribution, send a <code>POST /v1/query</code> request containing the query string, top_k parameters, and optional content-type filters.</p>
+    </section>
+</body>
+</html>

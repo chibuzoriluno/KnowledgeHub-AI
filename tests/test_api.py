@@ -12,6 +12,7 @@ class FakeRAGService:
         query: str,
         top_k: int = 3,
         max_distance: float | None = None,
+        document_id: str | None = None,
     ) -> RAGResponse:
         return RAGResponse(
             query=query,
@@ -26,6 +27,7 @@ class FailingRAGService:
         query: str,
         top_k: int = 3,
         max_distance: float | None = None,
+        document_id: str | None = None,
     ) -> RAGResponse:
         from app.services.generation_service import GenerationServiceError
 
@@ -139,3 +141,129 @@ def test_rag_endpoint_returns_503_on_generation_failure(monkeypatch):
     assert response.json() == {
         "detail": "The local LLM service is unavailable."
     }
+
+
+def test_search_endpoint_accepts_document_filter(monkeypatch):
+    class FakeRetrievalService:
+        def search(
+            self,
+            query: str,
+            top_k: int = 3,
+            max_distance: float | None = None,
+            document_id: str | None = None,
+        ):
+            from app.models.search import SearchResponse, SearchResult
+
+            return SearchResponse(
+                query=query,
+                result_count=1,
+                results=[
+                    SearchResult(
+                        chunk_id="test_doc_chunk_000",
+                        document_id=document_id or "test_doc",
+                        chunk_index=0,
+                        text="Machine learning learns from data.",
+                        distance=0.5,
+                    )
+                ],
+            )
+
+    monkeypatch.setattr(
+        "app.api.routes.retrieval_service",
+        FakeRetrievalService(),
+    )
+
+    response = asyncio.run(
+        make_request(
+            "POST",
+            "/search",
+            {
+                "query": "What is machine learning?",
+                "document_id": "test_doc",
+            },
+        )
+    )
+
+    assert response.status_code == 200
+    assert response.json()["results"][0]["document_id"] == "test_doc"
+
+
+def test_search_endpoint_works_without_document_filter(monkeypatch):
+    class FakeRetrievalService:
+        def search(
+            self,
+            query: str,
+            top_k: int = 3,
+            max_distance: float | None = None,
+            document_id: str | None = None,
+        ):
+            from app.models.search import SearchResponse, SearchResult
+
+            return SearchResponse(
+                query=query,
+                result_count=1,
+                results=[
+                    SearchResult(
+                        chunk_id="test_doc_chunk_000",
+                        document_id="test_doc",
+                        chunk_index=0,
+                        text="Machine learning learns from data.",
+                        distance=0.5,
+                    )
+                ],
+            )
+
+    monkeypatch.setattr(
+        "app.api.routes.retrieval_service",
+        FakeRetrievalService(),
+    )
+
+    response = asyncio.run(
+        make_request(
+            "POST",
+            "/search",
+            {
+                "query": "What is machine learning?",
+            },
+        )
+    )
+
+    assert response.status_code == 200
+    assert response.json()["result_count"] == 1
+
+
+def test_rag_endpoint_accepts_document_filter(monkeypatch):
+    class FilterAwareRAGService:
+        async def answer(
+            self,
+            query: str,
+            top_k: int = 3,
+            max_distance: float | None = None,
+            document_id: str | None = None,
+        ) -> RAGResponse:
+            assert document_id == "test_doc"
+
+            return RAGResponse(
+                query=query,
+                answer="Fake filtered answer.",
+                sources=[],
+            )
+
+    monkeypatch.setattr(
+        "app.api.routes.rag_service",
+        FilterAwareRAGService(),
+    )
+
+    response = asyncio.run(
+        make_request(
+            "POST",
+            "/rag",
+            {
+                "query": "What is machine learning?",
+                "document_id": "test_doc",
+            },
+        )
+    )
+
+    assert response.status_code == 200
+    assert response.json()["answer"] == "Fake filtered answer."
