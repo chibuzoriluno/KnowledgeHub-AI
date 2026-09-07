@@ -1,8 +1,9 @@
 {
-  "version": "2.0",
+  "version": "2.1",
   "evaluation_cases": [
     {
       "id": "q01",
+      "type": "direct",
       "query": "What is machine learning?",
       "expected_document_ids": ["test_doc"],
       "expected_content_types": ["text"],
@@ -10,6 +11,7 @@
     },
     {
       "id": "q02",
+      "type": "direct",
       "query": "What is supervised learning?",
       "expected_document_ids": ["test_doc"],
       "expected_content_types": ["text"],
@@ -17,6 +19,7 @@
     },
     {
       "id": "q03",
+      "type": "direct",
       "query": "What is reinforcement learning?",
       "expected_document_ids": ["test_doc"],
       "expected_content_types": ["text"],
@@ -24,13 +27,15 @@
     },
     {
       "id": "q04",
-      "query": "What mathematical foundations are used in machine learning?",
+      "type": "paraphrase",
+      "query": "Which mathematical areas provide the foundation for machine learning?",
       "expected_document_ids": ["test_doc"],
       "expected_content_types": ["text"],
       "expected_metadata": {}
     },
     {
       "id": "q05",
+      "type": "direct",
       "query": "What is MLOps?",
       "expected_document_ids": ["test_doc"],
       "expected_content_types": ["text"],
@@ -38,6 +43,7 @@
     },
     {
       "id": "q06",
+      "type": "direct",
       "query": "What is FastAPI?",
       "expected_document_ids": ["test_phase5"],
       "expected_content_types": ["text"],
@@ -45,6 +51,7 @@
     },
     {
       "id": "q07",
+      "type": "direct",
       "query": "What is ChromaDB used for?",
       "expected_document_ids": ["test_phase5"],
       "expected_content_types": ["text"],
@@ -52,13 +59,15 @@
     },
     {
       "id": "q08",
-      "query": "What is semantic search?",
+      "type": "paraphrase",
+      "query": "What does semantic search mean?",
       "expected_document_ids": ["test_phase5"],
       "expected_content_types": ["text"],
       "expected_metadata": {}
     },
     {
       "id": "q09",
+      "type": "multi_topic",
       "query": "How does FastAPI interact with ChromaDB?",
       "expected_document_ids": ["test_phase5"],
       "expected_content_types": ["text"],
@@ -66,9 +75,130 @@
     },
     {
       "id": "q10",
+      "type": "out_of_domain",
       "query": "What is quantum entanglement?",
       "expected_document_ids": [],
       "expected_content_types": [],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q11",
+      "type": "paraphrase",
+      "query": "How is machine learning different from traditional rule-based programming?",
+      "expected_document_ids": ["test_doc"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q12",
+      "type": "paraphrase",
+      "query": "How does an agent learn through rewards and penalties?",
+      "expected_document_ids": ["test_doc"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q13",
+      "type": "paraphrase",
+      "query": "Why is a vector database useful in a RAG application?",
+      "expected_document_ids": ["test_phase5"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q14",
+      "type": "out_of_domain",
+      "query": "What is photosynthesis?",
+      "expected_document_ids": [],
+      "expected_content_types": [],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q15",
+      "type": "out_of_domain",
+      "query": "Who invented the telephone?",
+      "expected_document_ids": [],
+      "expected_content_types": [],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q16",
+      "type": "ambiguous",
+      "query": "How does the system find relevant information?",
+      "expected_document_ids": ["test_phase5", "test_doc"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q17",
+      "type": "paraphrase",
+      "query": "What approach allows a machine learning system to improve from experience?",
+      "expected_document_ids": ["test_doc"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q18",
+      "type": "multi_topic",
+      "query": "How are documents indexed and then searched for relevant context?",
+      "expected_document_ids": ["test_phase5"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q19",
+      "type": "distractor",
+      "query": "How does a retrieval system represent information numerically?",
+      "expected_document_ids": ["test_phase5"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q20",
+      "type": "distractor",
+      "query": "What is the purpose of generating embeddings?",
+      "expected_document_ids": ["test_phase5"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q21",
+      "type": "out_of_domain",
+      "query": "What causes earthquakes?",
+      "expected_document_ids": [],
+      "expected_content_types": [],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q22",
+      "type": "out_of_domain",
+      "query": "How does photosynthesis convert sunlight into chemical energy?",
+      "expected_document_ids": [],
+      "expected_content_types": [],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q23",
+      "type": "paraphrase",
+      "query": "What role does an API framework play in a retrieval-augmented application?",
+      "expected_document_ids": ["test_phase5"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q24",
+      "type": "paraphrase",
+      "query": "How does reinforcement learning use feedback to guide behavior?",
+      "expected_document_ids": ["test_doc"],
+      "expected_content_types": ["text"],
+      "expected_metadata": {}
+    },
+    {
+      "id": "q25",
+      "type": "multi_topic",
+      "query": "How do embeddings and vector databases work together in semantic retrieval?",
+      "expected_document_ids": ["test_phase5"],
+      "expected_content_types": ["text"],
       "expected_metadata": {}
     }
   ]

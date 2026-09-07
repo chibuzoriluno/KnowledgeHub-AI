@@ -13,7 +13,8 @@ class SearchResult(BaseModel):
     document_id: str
     chunk_index: int
     text: str
-    distance: float
+    distance: float | None = None
+    score: float | None = None
 
 
 class SearchResponse(BaseModel):
@@ -33,7 +34,8 @@ class RAGSource(BaseModel):
     chunk_id: str
     document_id: str
     chunk_index: int
-    distance: float
+    distance: float | None = None
+    score: float | None = None
 
 
 class RAGResponse(BaseModel):

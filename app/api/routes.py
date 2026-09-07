@@ -10,7 +10,9 @@ from app.models.search import (
     RAGRequest,
     RAGResponse,
 )
-from app.services.retrieval_service import RetrievalService
+from app.services.reranked_hybrid_retrieval_service import (
+    RerankedHybridRetrievalService,
+)
 from app.services.rag_service import RAGService
 
 router = APIRouter()
@@ -91,7 +93,7 @@ async def upload_document(file: UploadFile = File(...)):
 
 
 
-retrieval_service = RetrievalService()
+retrieval_service = RerankedHybridRetrievalService()
 rag_service = RAGService()
 
 @router.post("/search", response_model=SearchResponse)
@@ -104,7 +106,7 @@ def search_documents(request: SearchRequest):
     )
 
     logger.info(
-        "Semantic search completed: top_k=%d result_count=%d",
+        "Hybrid search completed: top_k=%d result_count=%d",
         request.top_k,
         results.result_count,
         )

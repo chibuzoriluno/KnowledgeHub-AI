@@ -1,19 +1,21 @@
 from app.core.config import settings
 from app.models.search import RAGResponse, RAGSource
-from app.services.retrieval_service import RetrievalService
+from app.services.reranked_hybrid_retrieval_service import (
+    RerankedHybridRetrievalService,
+)
 from app.services.generation_service import GenerationService
 
 
 class RAGService:
     def __init__(
         self,
-        retrieval_service: RetrievalService | None = None,
+        retrieval_service: RerankedHybridRetrievalService | None = None,
         generation_service: GenerationService | None = None,
     ):
         self.retrieval_service = (
             retrieval_service
             if retrieval_service is not None
-            else RetrievalService()
+            else RerankedHybridRetrievalService()
         )
 
         self.generation_service = (
@@ -85,6 +87,7 @@ Answer:
                 document_id=result.document_id,
                 chunk_index=result.chunk_index,
                 distance=result.distance,
+                score=result.score,
             )
             for result in search_response.results
         ]

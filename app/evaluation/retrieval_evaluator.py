@@ -1,4 +1,5 @@
 import json
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -17,6 +18,10 @@ class EvaluationMetrics:
     hit_at_3: int
     out_of_domain_total: int
     out_of_domain_rejected: int
+
+    reciprocal_rank_sum: float = 0.0
+    document_recall_at_3_sum: float = 0.0
+    total_latency_ms: float = 0.0
 
     @property
     def hit_at_1_rate(self) -> float:
@@ -42,6 +47,38 @@ class EvaluationMetrics:
             / self.out_of_domain_total
         )
 
+    @property
+    def mean_reciprocal_rank(self) -> float:
+        if self.in_domain_total == 0:
+            return 0.0
+
+        return (
+            self.reciprocal_rank_sum
+            / self.in_domain_total
+        )
+
+    @property
+    def mean_document_recall_at_3(self) -> float:
+        if self.in_domain_total == 0:
+            return 0.0
+
+        return (
+            self.document_recall_at_3_sum
+            / self.in_domain_total
+        )
+
+    @property
+    def average_latency_ms(self) -> float:
+        total_cases = (
+            self.in_domain_total
+            + self.out_of_domain_total
+        )
+
+        if total_cases == 0:
+            return 0.0
+
+        return self.total_latency_ms / total_cases
+
 
 def load_evaluation_set():
     data = json.loads(
@@ -57,10 +94,45 @@ def load_evaluation_set():
 
     if not isinstance(evaluation_cases, list):
         raise ValueError(
-            "Evaluation file must contain an 'evaluation_cases' list."
+            "Evaluation file must contain an "
+            "'evaluation_cases' list."
         )
 
     return evaluation_cases
+
+
+def calculate_reciprocal_rank(
+    expected_documents: set[str],
+    retrieved_documents: list[str],
+) -> float:
+    for rank, document_id in enumerate(
+        retrieved_documents,
+        start=1,
+    ):
+        if document_id in expected_documents:
+            return 1.0 / rank
+
+    return 0.0
+
+
+def calculate_document_recall_at_3(
+    expected_documents: set[str],
+    retrieved_documents: list[str],
+) -> float:
+    if not expected_documents:
+        return 0.0
+
+    retrieved_at_3 = set(
+        retrieved_documents[:3]
+    )
+
+    relevant_retrieved = (
+        expected_documents & retrieved_at_3
+    )
+
+    return len(relevant_retrieved) / len(
+        expected_documents
+    )
 
 
 def evaluate_retrieval(
@@ -77,17 +149,29 @@ def evaluate_retrieval(
     out_of_domain_total = 0
     out_of_domain_rejected = 0
 
+    reciprocal_rank_sum = 0.0
+    document_recall_at_3_sum = 0.0
+    total_latency_ms = 0.0
+
     for item in evaluation_set:
         question = item["query"]
         expected_documents = set(
             item["expected_document_ids"]
         )
 
+        start_time = time.perf_counter()
+
         response = retrieval_service.search(
             query=question,
             top_k=top_k,
             max_distance=max_distance,
         )
+
+        latency_ms = (
+            time.perf_counter() - start_time
+        ) * 1000
+
+        total_latency_ms += latency_ms
 
         retrieved_documents = [
             result.document_id
@@ -107,6 +191,20 @@ def evaluate_retrieval(
             ):
                 hit_at_3 += 1
 
+            reciprocal_rank_sum += (
+                calculate_reciprocal_rank(
+                    expected_documents,
+                    retrieved_documents,
+                )
+            )
+
+            document_recall_at_3_sum += (
+                calculate_document_recall_at_3(
+                    expected_documents,
+                    retrieved_documents,
+                )
+            )
+
         else:
             out_of_domain_total += 1
 
@@ -119,11 +217,17 @@ def evaluate_retrieval(
         hit_at_3=hit_at_3,
         out_of_domain_total=out_of_domain_total,
         out_of_domain_rejected=out_of_domain_rejected,
+        reciprocal_rank_sum=reciprocal_rank_sum,
+        document_recall_at_3_sum=(
+            document_recall_at_3_sum
+        ),
+        total_latency_ms=total_latency_ms,
     )
 
 
 def print_metrics(metrics: EvaluationMetrics) -> None:
     print("\n" + "=" * 70)
+
     print(
         f"In-domain Hit@1: "
         f"{metrics.hit_at_1}/"
@@ -139,10 +243,25 @@ def print_metrics(metrics: EvaluationMetrics) -> None:
     )
 
     print(
+        f"Mean Reciprocal Rank: "
+        f"{metrics.mean_reciprocal_rank:.4f}"
+    )
+
+    print(
+        f"Mean document Recall@3: "
+        f"{metrics.mean_document_recall_at_3:.1%}"
+    )
+
+    print(
         f"Out-of-domain rejection: "
         f"{metrics.out_of_domain_rejected}/"
         f"{metrics.out_of_domain_total} "
         f"({metrics.out_of_domain_rejection_rate:.1%})"
+    )
+
+    print(
+        f"Average retrieval latency: "
+        f"{metrics.average_latency_ms:.2f} ms"
     )
 
 
@@ -162,11 +281,17 @@ def evaluate() -> EvaluationMetrics:
             item["expected_document_ids"]
         )
 
+        start_time = time.perf_counter()
+
         response = retrieval_service.search(
             query=question,
             top_k=TOP_K,
             max_distance=MAX_DISTANCE,
         )
+
+        latency_ms = (
+            time.perf_counter() - start_time
+        ) * 1000
 
         retrieved_documents = [
             result.document_id
@@ -176,6 +301,9 @@ def evaluate() -> EvaluationMetrics:
         print(f"\nQuestion: {question}")
         print(f"Expected: {sorted(expected_documents)}")
         print(f"Retrieved: {retrieved_documents}")
+        print(
+            f"Latency: {latency_ms:.2f} ms"
+        )
 
         for result in response.results:
             print(
@@ -189,17 +317,46 @@ def evaluate() -> EvaluationMetrics:
                 expected_documents
                 & set(retrieved_documents[:1])
             )
+
             hit_at_3 = bool(
                 expected_documents
                 & set(retrieved_documents[:3])
             )
 
-            print(
-                f"Hit@1: {'YES' if hit_at_1 else 'NO'}"
+            reciprocal_rank = (
+                calculate_reciprocal_rank(
+                    expected_documents,
+                    retrieved_documents,
+                )
             )
-            print(
-                f"Hit@3: {'YES' if hit_at_3 else 'NO'}"
+
+            document_recall = (
+                calculate_document_recall_at_3(
+                    expected_documents,
+                    retrieved_documents,
+                )
             )
+
+            print(
+                f"Hit@1: "
+                f"{'YES' if hit_at_1 else 'NO'}"
+            )
+
+            print(
+                f"Hit@3: "
+                f"{'YES' if hit_at_3 else 'NO'}"
+            )
+
+            print(
+                f"Reciprocal rank: "
+                f"{reciprocal_rank:.4f}"
+            )
+
+            print(
+                f"Document Recall@3: "
+                f"{document_recall:.1%}"
+            )
+
         else:
             print(
                 "Out-of-domain rejected: "
